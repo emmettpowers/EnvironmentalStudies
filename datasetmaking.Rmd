@@ -1,0 +1,78 @@
+---
+title: "Making the Master Dataset"
+author: "Emmett Powers"
+date: "4/19/2020"
+output: pdf_document
+---
+
+```{r}
+WomanHouseholders2 <- WomanHouseholders[c(1,2,3,19)]
+WomanHouseholders2$PctWomanHouseholds <- NA
+WomanHouseholders2$PctWomanHouseholds <- 100 * (WomanHouseholders2$B11002009 / WomanHouseholders2$B11002001)
+WomanHouseholders2 <- WomanHouseholders2[-c(3,4)]
+WomanHouseholders2 <- WomanHouseholders2[-163,]
+```
+
+```{r}
+CensusDataCombined <- merge(WomanHouseholders2, Poverty2, by = c("geoid", "name"))
+CensusDataCombined <- CensusDataCombined[-c(1)]
+CensusDataCombined <- CensusDataCombined[-c(3)]
+CensusDataCombined <- rename(CensusDataCombined,
+                             Geography = "name"
+                             )
+```
+ 
+```{r}
+VulnerabilityDataCombined <- Vulnerability[c(2:7, 9, 10)]
+```
+
+```{r}
+ SocialVars1 <- merge(VulnerabilityDataCombined, CensusDataCombined) #this didn't work for me 
+library(plyr)
+SocialVars1 <- join(VulnerabilityDataCombined, CensusDataCombined) #this didn't work for me , census data all NA
+
+# Figured out the problem; geography is named differently. One dataset says 'OR' , the other "Oregon"
+
+VulnerabilityDataCombined$Geography <- gsub('Oregon', 'OR', VulnerabilityDataCombined$Geography)
+CensusDataCombined$Geography <- gsub('Multnomah,' , 'Multnomha County,' , CensusDataCombined$Geography)
+# LOL spelled it wrong
+CensusDataCombined$Geography <- gsub('Multnomha County,' , 'Multnomah County,' , CensusDataCombined$Geography)
+
+SocialVars1 <- join(VulnerabilityDataCombined, CensusDataCombined)
+#Got it!
+```
+
+```{r}
+SocialVars1$PovertyIndex <- NA
+SocialVars1$POCIndex <- NA
+SocialVars1$WomanHouseholdIndex <- NA
+SocialVars1$EducationIndex <- NA
+write.csv(SocialVars1, "SocialVars1.csv")
+```
+
+```{r}
+NO2andUhi <- No2andUhi[c(1:3, 7, 13, 19)]
+NO2andUhi$UHI_avg <- (NO2andUhi$UHI_c_MEAN + NO2andUhi$UHI_b_MEAN) /2
+NO2andUhi <- NO2andUhi[-c(5,6)]
+```
+
+```{r}
+SixVars <- join(SocialVars1, NO2andUhi, by = "TRACT_NO")
+SixVars <- SixVars[-c(15,16)]
+SixVars$No2Index <- NA
+SixVars$UHIIndex <- NA
+write.csv(SixVars, "SixVars.csv")
+```
+
+```{r}
+SocVarNEnviroVar$PovertyIndex <- NA
+SocVarNEnviroVar$POCIndex <- NA
+SocVarNEnviroVar$EducationIndex <- NA
+SocVarNEnviroVar$FemaleHouseholderIndex <- NA
+SocVarNEnviroVar$LowEnglishIndex <-NA
+SocVarNEnviroVar$NO2Index <-NA
+SocVarNEnviroVar$UHIIndex <-NA
+SocVarNEnviroVar$OverallVulnerabilityIndex <- NA
+write.csv(SocVarNEnviroVar, "ready4jenks2.csv")
+```
+
