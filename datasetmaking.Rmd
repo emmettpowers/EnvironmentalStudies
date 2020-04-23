@@ -4,6 +4,8 @@ author: "Emmett Powers"
 date: "4/19/2020"
 output: pdf_document
 ---
+## Here is some of my process for making a useful dataset from messy census datasets. 
+
 
 ```{r}
 WomanHouseholders2 <- WomanHouseholders[c(1,2,3,19)]
